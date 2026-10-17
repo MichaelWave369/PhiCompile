@@ -66,31 +66,25 @@ This opt-in view includes only locally stored proposal receipts whose content SH
 
 ## Governed human relationship review (v0.4)
 
-Review a *particular model-suggested relationship* only after running \`propose\` on the current source ledger. The \`propose\` command prints a \`proposal_sha256\`; inspect its private JSON file to find the \`pair_id\` (usually \`P001\`, etc.).
+Replace `REPLACE_WITH_64_CHARACTER_SHA256` with the SHA-256 printed by `propose`. Review a *particular model-suggested relationship* only after running `propose` on the current source ledger. The `propose` command prints a `proposal_sha256`; inspect its private JSON file to find the `pair_id` (usually `P001`, etc.).
 
-\`\`\`bash
+```bash
 # Show the current review history and verify decision hash-chain integrity:
 python -m phicompile --vault .phicompile reviews
 
 # Human reviewer deliberately ACCEPTS a connection for future exploration:
-python -m phicompile --vault .phicompile review \
-  --receipt <64-character-proposal_sha256> --pair-id P001 \
-  --decision accept --reviewer "Local reviewer" \
-  --reason "Both excerpts refer to the same feature under the same scope."
+python -m phicompile --vault .phicompile review --receipt REPLACE_WITH_64_CHARACTER_SHA256 --pair-id P001 --decision accept --reviewer "Local reviewer" --reason "Both excerpts refer to the same feature under the same scope."
 
 # Or REJECT it for a different scope or misleading inference:
-python -m phicompile --vault .phicompile review \
-  --receipt <64-character-proposal_sha256> --pair-id P001 \
-  --decision reject --reviewer "Local reviewer" \
-  --reason "The documents discuss different versions of the feature."
+python -m phicompile --vault .phicompile review --receipt REPLACE_WITH_64_CHARACTER_SHA256 --pair-id P001 --decision reject --reviewer "Local reviewer" --reason "The documents discuss different versions of the feature."
 
 # View connection decisions alongside unreviewed AI suggestions:
 python -m phicompile --vault .phicompile graph --include-proposals
-\`\`\`
+```
 
-Review results live in the ignored local \`.phicompile/reviews/decisions.jsonl\`. Each append-only event includes the full proposal receipt digest, stable pair ID / graph edge ID, source ledger head, user-supplied reviewer name, decision, written reason, and previous review hash. Newer reviews supersede earlier decisions **in the current view**, but the earlier events remain in history.
+Review results live in the ignored local `.phicompile/reviews/decisions.jsonl`. Each append-only event includes the full proposal receipt digest, stable pair ID / graph edge ID, source ledger head, user-supplied reviewer name, decision, written reason, and previous review hash. Newer reviews supersede earlier decisions **in the current view**, but the earlier events remain in history.
 
-**CRUCIAL:** ACCEPT means "this *relationship* is useful/appropriate for a local knowledge graph." It does **not** mean either claim is factually correct, scientifically verified, source-authenticated, or authorized for execution. \`VERIFIED\` claim promotion is **not implemented**. The reviewer string is a **self-reported label**, not a login or signature. SHA chaining detects modifications but cannot prevent a person with full disk control from rewriting history.
+**CRUCIAL:** ACCEPT means "this *relationship* is useful/appropriate for a local knowledge graph." It does **not** mean either claim is factually correct, scientifically verified, source-authenticated, or authorized for execution. `VERIFIED` claim promotion is **not implemented**. The reviewer string is a **self-reported label**, not a login or signature. SHA chaining detects modifications but cannot prevent a person with full disk control from rewriting history.
 
 When a new source is ingested, previous proposal receipts and decisions are still preserved, but the current graph excludes old-head suggestions and their reviews; generate a fresh proposal for the new ledger state if needed. This first review system is intentionally **single-writer**, without lock-based concurrency protection or transactional crash recovery.
 
