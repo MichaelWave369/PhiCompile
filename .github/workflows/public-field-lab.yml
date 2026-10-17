@@ -1,0 +1,70 @@
+name: Public Field Lab (React)
+
+on:
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/public-field-lab.yml"
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/public-field-lab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "phicompile-public-pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and build synthetic React lab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install site dependencies
+        working-directory: site
+        run: npm install --no-audit --no-fund
+      - name: Validate synthetic fixtures
+        working-directory: site
+        run: npm test
+      - name: Compile React production assets
+        working-directory: site
+        run: npm run build
+      - name: Check production output
+        run: |
+          test -s site/dist/index.html
+          test -f site/dist/phi.svg
+          grep -q '/PhiCompile/assets/' site/dist/index.html
+          if test -d site/dist/.phicompile; then
+            echo "ERROR: private vault path was copied into public distribution"
+            exit 1
+          fi
+      - name: Upload GitHub Pages artifact (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    name: Deploy synthetic React lab to Pages
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

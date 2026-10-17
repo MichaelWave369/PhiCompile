@@ -6,6 +6,12 @@
 
 > **v0.4.0 adds governed human relationship review.** Users can record ACCEPT / REJECT decisions against an exact AI proposal receipt and pair, with an integrity-checkable decision history. Accepting a *connection* never verifies either underlying claim. Everything stays local and source evidence remains unchanged.
 
+## Public React Field Lab (v0.5, synthetic exhibit)
+
+The public [ΦCompile Field Lab](https://michaelwave369.github.io/PhiCompile/) is an interactive React/Vite visualization built from **fictional source records only**. This is not the private local engine: there is no vault access, backend connection, Ollama request, real research ingest, or cryptographic receipt generation. Demo review buttons only change temporary browser state, never real claim truth.
+
+The site lives in [site/](site/README.md). GitHub Actions builds and checks the synthetic fixtures on pull requests, then attempts to deploy site/dist on main. For a first-time Pages setup, configure **Settings → Pages → Build and deployment → Source → GitHub Actions**. Passing tests does not imply Pages is already publicly accessible.
+
 ## Quick start
 
 Requires Python 3.10+ and no runtime dependencies.

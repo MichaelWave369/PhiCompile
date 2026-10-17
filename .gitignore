@@ -6,3 +6,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+site/node_modules/
+site/dist/
+site/.vite/
