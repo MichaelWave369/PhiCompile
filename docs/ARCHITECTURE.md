@@ -39,3 +39,17 @@
 - **BudgetGenius:** local-first caching, timeouts, and spend/compute ceilings.
 
 Before release, evaluate against a retrieval-only baseline using held-out questions, deliberate contradictory documents, false-fact injection, prompt-injection attempts, and source deletion/retraction scenarios. Do not present synthetic sample results as validated research.
+
+## v0.2 local intelligence proposal bridge
+
+The model-enabled path is intentionally separate from ingestion:
+
+1. `plan` verifies existing source snapshots and ledger continuity and previews at most 16 possible cross-source claim pairs. It never invokes Ollama.
+2. `propose` requires explicit invocation and a user-chosen installed model. It locally calls Ollama's `/api/generate` with a bounded JSON schema and without tool interfaces.
+3. The response is validated against the exact pairs selected, limited relation labels and bounded rationale lengths. Any mismatch rejects the entire result.
+4. The resulting file is an unverified content-hashed proposal under `output/proposals/`. It includes the source ledger head, stable claim/source/line references, requested and returned model names, request/response hashes, and optional inference metrics.
+5. Source snapshots, `ledger.jsonl`, candidate claim statuses and compiled wiki files do not change during proposals. There is no auto-promotion or automatic downstream integration.
+
+**Not guaranteed:** correctness of model reasoning, full coverage of candidate pairs, a model-weights cryptographic digest, signed identities, thread-safe concurrency, and independent factual verification.
+
+Acceptance checks: no external endpoint; no request during `plan`; unknown IDs / malformed JSON / model mismatch rejected; no source or ledger mutations; model output never VERIFIED; CI runs with a fake transport, not a live model.

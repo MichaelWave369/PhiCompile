@@ -4,7 +4,7 @@
 
 ΦCompile is an original, local-first prototype for **evidence-governed knowledge compilation**. It keeps unchanged source snapshots, extracts conservative candidate claims, links related claims across sources, flags possible contradictions, and creates a human-readable wiki plus an auditable receipt.
 
-> **v0.1.0 is an experimental, deterministic proof of concept**, not a factual truth engine, autonomous research agent, or LLM-powered synthesizer. Candidate claims are always `INFERRED`; sources default to `UNKNOWN`. A flag does not establish that two statements actually contradict one another.
+> **v0.2.0 adds an optional, explicit Ollama proposal bridge.** The original compiler remains deterministic. Model output is **unverified** and never overwrites the evidence ledger or promotes a claim to VERIFIED. This is not an autonomous fact verifier.
 
 ## Quick start
 
@@ -23,6 +23,26 @@ python -m phicompile --vault .phicompile compile
 Then open `.phicompile/wiki/INDEX.md` and `.phicompile/output/LATEST.md`. The sample deliberately includes one contradictory statement so the possible-contradiction report can be tested.
 
 Alternative installation: `python -m pip install -e .` followed by `phicompile --vault .phicompile ...`.
+
+## Optional local Ollama proposals (v0.2)
+
+With Ollama running on your **own PC** and a model already installed:
+
+```bash
+# Check which candidate pairs would be shared with the local model, without a network call:
+python -m phicompile --vault .phicompile plan --max-pairs 8
+
+# Explicitly ask a LOCAL Ollama model to suggest relationships:
+python -m phicompile --vault .phicompile propose --model granite4.2:8b --max-pairs 8 --timeout 180
+```
+
+**Nothing runs automatically.** `propose` only connects to `http://127.0.0.1:11434/api/generate` and uses a structured JSON response with non-streaming, `think=false`, and `temperature=0`. It does not send requests to any public API. The model name is an example, not a bundled or automatically downloaded model.
+
+Results are private, content-hashed **proposal receipts** at `.phicompile/output/proposals/proposal-<hash>.json`. Each links claims to source SHA-256 and line numbers, records the input ledger head, the requested/reported model, SHA-256 hashes of the request and response objects, and basic compute metrics when present.
+
+**Proposal does not mean truth.** The model cannot edit sources, add a VERIFIED claim, update the source INGEST ledger, or publish/merge anything. Its output is strict-validated and stays `PROPOSED` until a separate, future human-reviewed workflow is designed.
+
+Pair discovery is *not comprehensive*: it compares up to 24 recent claims against one another and up to 120 older claims, prioritizing lexical overlap, and submits at most 16 pairs. It can miss semantically related statements, subtle negations, and contradictions. The LLM still sees potentially malicious source text in the prompt; the safest boundary is its lack of execution tools and its read-only proposal output, **not** the strength of the prompt wording.
 
 ## How it works
 
@@ -55,7 +75,7 @@ generated wiki/ and output/LATEST.md
 
 ## Trust boundaries
 
-Treat imported text as *untrusted data*, never model instructions. No code or shell commands from source files are executed. This version does **not** make network requests or invoke Ollama automatically. Hash chaining is tamper-evidence, **not** signed identity, tamper-proof storage, or independent factual verification.
+Treat imported text as *untrusted data*, never model instructions. No code or shell commands from source files are executed. The deterministic commands do **not** make network requests. The optional `propose` command makes **one explicitly requested local loopback request** to Ollama; it never runs automatically. Hash chaining is tamper-evidence, **not** signed identity, tamper-proof storage, or independent factual verification.
 
 Supported imports: UTF-8 `.md` and `.txt`, maximum 1 MiB and 500 non-heading line candidates per file. The relation detector is deliberately narrow; false positives and missed contradictions are expected. No multi-writer concurrency or partial-write recovery guarantee yet.
 
@@ -70,7 +90,7 @@ Supported imports: UTF-8 `.md` and `.txt`, maximum 1 MiB and 500 non-heading lin
 ## Roadmap
 
 - **v0.1:** content-addressed immutable snapshots; conservative candidate claims; cross-source candidate links; hash-chain receipts; generated wiki; automated tests.
-- **v0.2 (proposed):** governed local Ollama extraction adapter; claim-level provenance policy; independent contradiction review; model/version receipt.
+- **v0.2:** optional local Ollama relationship proposal bridge with strict output validation, model receipt, unchanged ingestion ledger, and automated mock-transport tests. Human promotion workflow and independently tested semantic extraction are **not** implemented.
 - **v0.3 (proposed):** incremental dependency graph, source retractions/supersession, transactional commit/recovery, benchmark against retrieval-only baselines.
 - **Later (not implemented):** optional read-only integrations with BrainC, Super Φ.Vessel, NBG, and Anti-M; a GitHub Pages demo using **synthetic fixtures only**.
 
