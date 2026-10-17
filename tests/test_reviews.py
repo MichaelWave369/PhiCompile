@@ -137,7 +137,7 @@ class ReviewGateTests(unittest.TestCase):
         r = self.receipt()
         for kwargs in (
             dict(reviewer="Mikey\nRoot", reason="This is explanatory."),
-            dict(reviewer="Tester", reason="too short"),
+            dict(reviewer="Tester", reason="short"),
             dict(reviewer="Tester", reason="contains\nnew line"),
         ):
             with self.subTest(kwargs=kwargs):
