@@ -217,7 +217,7 @@ def compile_wiki(vault: Path) -> dict:
             lines.append("- No cross-source candidates yet.")
         (wiki / ("claim-" + cid + ".md")).write_text("\n".join(lines) + "\n", encoding="utf-8")
     index = ["# ΦCompile generated knowledge index", "",
-             "All claims are candidate extractions. None are automatically verified.", ""]
+             "All claims have status INFERRED (candidate extractions). None are automatically verified.", ""]
     for cid, claim in sorted(state["claims"].items()):
         index.append("- [Claim " + cid[:12] + "](claim-" + cid + ".md): " +
                      html.escape(claim["text"][:120]))
