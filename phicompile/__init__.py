@@ -1,2 +1,2 @@
 """PhiCompile: local-first, evidence-governed knowledge compilation."""
-__version__ = "0.1.0"
+__version__ = "0.2.0"

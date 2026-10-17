@@ -27,4 +27,5 @@ jobs:
           python -m phicompile --vault .phicompile ingest samples/example-b.md
           python -m phicompile --vault .phicompile verify
           python -m phicompile --vault .phicompile compile
+          python -m phicompile --vault .phicompile plan --max-pairs 8
           grep -q "Possible contradictions: 1" .phicompile/output/LATEST.md
