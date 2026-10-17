@@ -28,4 +28,8 @@ jobs:
           python -m phicompile --vault .phicompile verify
           python -m phicompile --vault .phicompile compile
           python -m phicompile --vault .phicompile plan --max-pairs 8
+          python -m phicompile --vault .phicompile graph
+          test -s .phicompile/output/graph/index.html
+          test -s .phicompile/output/graph/graph.json
+          grep -q EVIDENCED_BY .phicompile/output/graph/graph.json
           grep -q "Possible contradictions: 1" .phicompile/output/LATEST.md

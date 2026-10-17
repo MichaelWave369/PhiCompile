@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>ΦGraph | ΦCompile</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,Segoe UI,Arial,sans-serif;background:#071019;color:#eaf3f7}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 5%,#17354c,#071019 44%,#050a13 100%)}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 28px;border-bottom:1px solid #263e4b;background:#071520da}
+.identity{display:flex;align-items:center;gap:13px}
+.logo{font-size:34px;color:#91efd4;text-shadow:0 0 20px #51ffd078}
+h1{font-size:19px;letter-spacing:.02em;margin:0}
+.sub{font-size:12px;letter-spacing:.15em;color:#91afc0;text-transform:uppercase;margin-top:4px}
+.notice{font-size:12px;border:1px solid #735b28;background:#37291350;border-radius:999px;padding:8px 13px;color:#f7d59e;max-width:360px;text-align:center}
+main{display:grid;grid-template-columns:minmax(0,1fr) 330px;height:calc(100vh - 91px);min-height:570px}
+.workspace{position:relative;min-width:0;overflow:hidden}
+svg{width:100%;height:100%;display:block;background-image:radial-gradient(#52708826 1px,transparent 1px);background-size:22px 22px;touch-action:none;cursor:grab}
+svg:active{cursor:grabbing}
+.edge{stroke:#53738c;stroke-width:1.5;opacity:.33;vector-effect:non-scaling-stroke}
+.edge.critical{stroke:#efaa64;stroke-width:3;opacity:.85}
+.edge.proposed{stroke:#e1bc67;stroke-dasharray:7 5;stroke-width:2.5;opacity:.8}
+.edge.derivation{stroke:#3e6a81;opacity:.36}
+.node{cursor:pointer}
+.node circle{stroke:#e5f5fc;stroke-width:1.3;fill:#213f54;filter:drop-shadow(0 0 7px #3aa6d133)}
+.node.source circle{fill:#234966;stroke:#83c6f4;stroke-width:2.7}
+.node.claim circle{fill:#174e4b;stroke:#6fe8c6}
+.node.active circle{stroke:#fff;stroke-width:3.4;filter:drop-shadow(0 0 10px #a9ffdf)}
+.node text{font-size:14px;fill:#d8eaf4;pointer-events:none;paint-order:stroke;stroke:#071019;stroke-width:3;stroke-linejoin:round}
+.node:focus-visible circle{stroke:#ffd58b;stroke-width:4}
+.toolbar{position:absolute;top:18px;left:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:calc(100% - 36px);background:#0a1b2aef;border:1px solid #294554;border-radius:14px;padding:10px 12px;box-shadow:0 10px 40px #0008}
+input[type=search]{color:#fff;background:#102a39;border:1px solid #456170;border-radius:8px;padding:9px 10px;width:215px;max-width:100%;font:inherit;font-size:13px}
+input[type=search]:focus,button:focus-visible{outline:2px solid #8bead0;outline-offset:2px}
+button{background:#173345;border:1px solid #426779;border-radius:8px;padding:9px 12px;color:#e5f3f9;font-size:13px;cursor:pointer}
+button:hover{border-color:#92f3d5;background:#214759}
+.legend{position:absolute;bottom:22px;left:20px;background:#0a1b2ad9;border:1px solid #294554;border-radius:12px;padding:10px 14px;display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#a8c4d4}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:#85c8f5}
+.dot.claim{background:#70e7c4}.dot.conflict{background:#f6ae68}.dot.proposal{background:#e7c77c}
+aside{background:#0b1824f5;border-left:1px solid #28414f;overflow:auto;padding:23px 22px}
+h2{font-size:13px;letter-spacing:.12em;color:#8cbdca;text-transform:uppercase;margin:0 0 15px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:24px}
+.stat{border:1px solid #29434f;background:#112432;border-radius:12px;padding:11px}
+.number{font-size:21px;font-weight:700;color:#a4f3de}
+.stat span{display:block;font-size:11px;color:#9bb1bd;margin-top:3px}
+.inspector{border-top:1px solid #2a4753;padding-top:18px}
+.name{font-size:17px;font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.pill{display:inline-block;margin-top:10px;color:#f0c88a;background:#49341466;border:1px solid #77592c;border-radius:99px;padding:4px 8px;font-size:11px}
+.description{font-size:13px;color:#a8becc;line-height:1.7}
+.meta{font-size:12px;line-height:1.6;margin-top:15px;overflow-wrap:anywhere}
+.meta strong{color:#cee4ef}
+.meta p{margin:5px 0 10px}
+ul{padding-left:19px;margin:8px 0}
+li{margin:8px 0}
+li button{border:0;background:none;text-align:left;padding:1px;color:#9de2e8;text-decoration:underline;overflow-wrap:anywhere}
+a{color:#9ee9da}
+.tag{font-size:11px;text-transform:uppercase;color:#9cc6d5;letter-spacing:.1em}
+.footer{margin-top:18px;padding-top:16px;border-top:1px solid #29434f;font-size:11px;color:#7f9ba9;overflow-wrap:anywhere}
+.weak{opacity:.15}
+.hide{display:none}
+.filter{display:inline-flex;gap:5px;align-items:center;font-size:12px;color:#a9c4d0;white-space:nowrap}
+.filter input{accent-color:#8be4c9}
+@media(max-width:850px){header{padding:15px}.notice{display:none}main{grid-template-columns:1fr;height:auto}.workspace{height:62vh;min-height:430px}aside{border-left:0;border-top:1px solid #28414f}.toolbar{left:10px;top:10px}input[type=search]{width:135px}.legend{left:10px;bottom:10px;gap:9px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="identity"><div class="logo" aria-hidden="true">Φ</div><div><h1>ΦGraph <span style="color:#71aabb;font-weight:400">/ ΦCompile</span></h1><div class="sub">Build outward · Circle back · Compile forward</div></div></div>
+ <div class="notice">Evidence-linked exploration · Not verified truth</div>
+</header>
+<main>
+<section class="workspace" aria-label="Knowledge relationship network">
+  <svg id="network" viewBox="-850 -620 1700 1240" role="group" aria-label="Interactive local knowledge network"><g id="camera"><g id="edge-layer"></g><g id="node-layer"></g></g></svg>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="Search sources / claims" aria-label="Search graph">
+    <label class="filter"><input type="checkbox" id="show-evidence" checked>Evidence</label>
+    <label class="filter"><input type="checkbox" id="show-related" checked>Related</label>
+    <label class="filter"><input type="checkbox" id="show-conflict" checked>Conflicts</label>
+    <label class="filter"><input type="checkbox" id="show-proposed" checked>Proposals</label>
+    <button id="reset" type="button">Reset view</button>
+  </div>
+  <div class="legend"><span><i class="dot"></i>Source</span><span><i class="dot claim"></i>Candidate claim</span><span><i class="dot conflict"></i>Possible contradiction</span><span><i class="dot proposal"></i>AI proposal</span></div>
+</section>
+<aside>
+  <h2>Knowledge overview</h2>
+  <div class="stats">
+    <div class="stat"><div class="number" id="source-count">0</div><span>Sources</span></div>
+    <div class="stat"><div class="number" id="claim-count">0</div><span>Candidate claims</span></div>
+    <div class="stat"><div class="number" id="link-count">0</div><span>Heuristic links</span></div>
+    <div class="stat"><div class="number" id="propose-count">0</div><span>AI proposals</span></div>
+  </div>
+  <section class="inspector" id="inspector" aria-live="polite">
+    <h2>Inspect the evidence</h2>
+    <p class="description">Select a node to inspect its source hash, claim line number, and connected claims. Scroll to zoom; drag the background to pan. Use Tab and Enter to navigate nodes by keyboard.</p>
+  </section>
+  <p class="footer">Private offline projection · no tracking · no remote scripts<br>All source text remains untrusted. Ledger head: <span id="head"></span></p>
+</aside>
+</main>
+<script type="application/json" id="graph-data">__PHIGRAPH_JSON__</script>
+<script>
+"use strict";
+(function () {
+const graph=JSON.parse(document.getElementById("graph-data").textContent);
+const NS="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+const nodes=graph.nodes, links=graph.links;
+const positions=new Map(), circles=new Map(), lines=new Map(), indexed=new Map(nodes.map(n=>[n.id,n]));
+const counts=graph.counts;
+$("source-count").textContent=String(counts.sources);
+$("claim-count").textContent=String(counts.claims);
+$("link-count").textContent=String(counts.heuristic_relations);
+$("propose-count").textContent=String(counts.model_proposals);
+$("head").textContent=graph.ledger_head.slice(0,16)+"…";
+const displayed=nodes.slice(0,650);
+const visible=new Set(displayed.map(n=>n.id));
+if(nodes.length>displayed.length){
+  const banner=document.createElement("p");
+  banner.className="description";
+  banner.textContent="Large graph: showing the first 650 nodes. Full evidence remains in graph.json.";
+  $("inspector").appendChild(banner);
+}
+const sourceNodes=displayed.filter(n=>n.kind==="SOURCE");
+const sourcesTotal=Math.max(1,sourceNodes.length);
+const orbit=Math.min(480,210+sourcesTotal*10);
+sourceNodes.forEach((s,i)=>{
+  const a=(i/sourcesTotal)*Math.PI*2-Math.PI/2;
+  positions.set(s.id,{x:Math.cos(a)*orbit,y:Math.sin(a)*orbit});
+});
+const bySource=new Map();
+displayed.filter(n=>n.kind==="CLAIM").forEach(n=>{
+  const id="source:"+n.source_sha256;
+  if(!bySource.has(id))bySource.set(id,[]);
+  bySource.get(id).push(n);
+});
+for(const [id,children] of bySource){
+  const center=positions.get(id)||{x:0,y:0};
+  children.forEach((n,i)=>{
+    const ring=Math.floor(i/12), position=i%12;
+    const angle=(position/12)*Math.PI*2 + ring*0.24;
+    const radius=94+ring*59;
+    positions.set(n.id,{x:center.x+Math.cos(angle)*radius,y:center.y+Math.sin(angle)*radius});
+  });
+}
+function make(tag,attrs,parent){
+  const el=document.createElementNS(NS,tag);
+  for(const k in attrs) el.setAttribute(k,String(attrs[k]));
+  parent.appendChild(el);return el;
+}
+function kindVisible(e){
+  if(e.kind==="EVIDENCED_BY")return $("show-evidence").checked;
+  if(e.status==="PROPOSED")return $("show-proposed").checked;
+  if(e.kind==="POSSIBLE_CONTRADICTION")return $("show-conflict").checked;
+  return $("show-related").checked;
+}
+let selected=null;
+for(const e of links){
+  if(!visible.has(e.from)||!visible.has(e.to))continue;
+  const a=positions.get(e.from),b=positions.get(e.to);
+  if(!a||!b)continue;
+  const style=e.status==="PROPOSED"?"edge proposed":e.kind==="POSSIBLE_CONTRADICTION"?"edge critical":e.kind==="EVIDENCED_BY"?"edge derivation":"edge";
+  const line=make("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:style},$("edge-layer"));
+  lines.set(e.id,{edge:e,el:line});
+}
+for(const n of displayed){
+  const p=positions.get(n.id);if(!p)continue;
+  const g=make("g",{class:"node "+n.kind.toLowerCase(),role:"button",tabindex:0,"aria-label":n.label},$("node-layer"));
+  g.setAttribute("transform","translate("+p.x+" "+p.y+")");
+  make("circle",{r:n.kind==="SOURCE"?19:8},g);
+  const label=make("text",{x:n.kind==="SOURCE"?25:13,y:5},g);
+  label.textContent=n.label.length>40?n.label.slice(0,37)+"…":n.label;
+  const focus=()=>select(n.id);
+  g.addEventListener("click",e=>{e.stopPropagation();focus();});
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();focus();}});
+  circles.set(n.id,g);
+}
+function appendText(parent,tag,value,className){
+ const el=document.createElement(tag);el.textContent=String(value);if(className)el.className=className;parent.appendChild(el);return el;
+}
+function meta(parent,key,value){
+ const p=appendText(parent,"p",key+": ");
+ const s=appendText(p,"strong",value);
+ return s;
+}
+function select(id){
+ selected=id;
+ for(const [k,g] of circles)g.classList.toggle("active",k===id);
+ const panel=$("inspector");panel.replaceChildren();
+ const n=indexed.get(id);
+ if(!n){appendText(panel,"h2","Inspect the evidence");return;}
+ appendText(panel,"h2",n.kind==="SOURCE"?"Source evidence":"Candidate claim");
+ appendText(panel,"div",n.label,"name");
+ appendText(panel,"span",n.kind==="CLAIM"?"INFERRED · NOT VERIFIED":"SOURCE ORIGIN · "+n.origin,"pill");
+ const details=appendText(panel,"div","","meta");
+ if(n.kind==="SOURCE"){
+   meta(details,"SHA-256",n.sha256);
+   meta(details,"Source origin",n.origin);
+   meta(details,"Ledger event",n.event_hash);
+ }else{
+   meta(details,"Status",n.status);
+   meta(details,"Source SHA-256",n.source_sha256);
+   meta(details,"Line",n.source_line);
+   const a=document.createElement("a");
+   a.href="../../sources/"+n.source_sha256+".txt";
+   a.textContent="Open local archived source";
+   a.target="_blank";a.rel="noopener noreferrer";details.appendChild(a);
+ }
+ const relevant=links.filter(e=>e.from===id||e.to===id);
+ appendText(panel,"h2","Connections ("+relevant.length+")");
+ if(!relevant.length)appendText(panel,"p","No recorded graph relationships.","description");
+ const ul=document.createElement("ul");panel.appendChild(ul);
+ for(const edge of relevant.slice(0,100)){
+   const li=document.createElement("li");ul.appendChild(li);
+   appendText(li,"span",edge.kind+" · "+edge.status+" · "+edge.basis,"tag");
+   const other=edge.from===id?edge.to:edge.from;
+   const btn=document.createElement("button");
+   btn.type="button";
+   const target=indexed.get(other);
+   btn.textContent=target?(target.label.length>72?target.label.slice(0,69)+"…":target.label):other;
+   btn.addEventListener("click",()=>{select(other);circles.get(other)?.focus();});
+   li.appendChild(btn);
+   if(edge.rationale)appendText(li,"div","AI rationale (unverified): "+edge.rationale,"description");
+ }
+ if(relevant.length>100)appendText(panel,"p","Only 100 connections listed here; see graph.json for all.","description");
+ refresh();
+}
+function refresh(){
+ const query=$("search").value.trim().toLowerCase();
+ const matched=new Set(query?displayed.filter(n=>n.label.toLowerCase().includes(query)||n.id.toLowerCase().includes(query)).map(n=>n.id):displayed.map(n=>n.id));
+ for(const [id,g] of circles)g.classList.toggle("weak",!matched.has(id)&&id!==selected);
+ for(const {edge,el} of lines.values()){
+   const passes=kindVisible(edge);
+   el.classList.toggle("hide",!passes);
+   el.classList.toggle("weak",passes&&query!==""&&!matched.has(edge.from)&&!matched.has(edge.to));
+ }
+}
+$("search").addEventListener("input",refresh);
+["show-evidence","show-related","show-conflict","show-proposed"].forEach(id=>$(id).addEventListener("change",refresh));
+let tx=0,ty=0,zoom=1;const camera=$("camera"),svg=$("network");
+function updateCamera(){camera.setAttribute("transform","translate("+tx+" "+ty+") scale("+zoom+")");}
+$("reset").addEventListener("click",()=>{tx=0;ty=0;zoom=1;updateCamera();$("search").value="";refresh();});
+svg.addEventListener("wheel",event=>{
+ event.preventDefault();zoom=Math.min(4,Math.max(.3,zoom*(event.deltaY>0?.90:1.1)));updateCamera();
+},{passive:false});
+let last=null;
+svg.addEventListener("pointerdown",e=>{
+ if(e.target.closest(".node"))return;
+ last={x:e.clientX,y:e.clientY};
+ svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener("pointermove",e=>{
+ if(!last)return;
+ const rect=svg.getBoundingClientRect();
+ tx+=(e.clientX-last.x)*1700/rect.width;
+ ty+=(e.clientY-last.y)*1240/rect.height;
+ last={x:e.clientX,y:e.clientY};
+ updateCamera();
+});
+svg.addEventListener("pointerup",()=>{last=null;});
+svg.addEventListener("pointercancel",()=>{last=null;});
+refresh();
+})();
+</script>
+</body>
+</html>

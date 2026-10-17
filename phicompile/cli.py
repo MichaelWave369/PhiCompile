@@ -8,6 +8,7 @@ from pathlib import Path
 from . import __version__
 from .core import IntegrityError, compile_wiki, ingest, init, verify, ORIGINS
 from .ollama import OllamaError, propose, select_pairs
+from .graph import GraphError, export_graph
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -29,6 +30,9 @@ def main(argv: list[str] | None = None) -> int:
                                  help="Installed Ollama model (e.g. granite4.2:8b)")
     proposal_parser.add_argument("--max-pairs", type=int, default=12)
     proposal_parser.add_argument("--timeout", type=int, default=180, help="Local request timeout, seconds")
+    graph_parser = commands.add_parser("graph", help="Export private offline ΦGraph viewer and JSON")
+    graph_parser.add_argument("--include-proposals", action="store_true",
+                              help="Include SHA-verified, current-head unverified model proposals")
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -40,12 +44,14 @@ def main(argv: list[str] | None = None) -> int:
             result = compile_wiki(args.vault)
         elif args.command == "verify":
             result = verify(args.vault)
+        elif args.command == "graph":
+            result = export_graph(args.vault, include_proposals=args.include_proposals)
         elif args.command == "plan":
             result = select_pairs(args.vault, limit=args.max_pairs)
         else:
             result = propose(args.vault, args.model, limit=args.max_pairs,
                              timeout=args.timeout)
-    except (IntegrityError, OllamaError, ValueError, OSError, UnicodeError) as exc:
+    except (IntegrityError, OllamaError, GraphError, ValueError, OSError, UnicodeError) as exc:
         parser.exit(1, f"PhiCompile error: {exc}\n")
     print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
     return 0

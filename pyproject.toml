@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phicompile"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local-first evidence-governed knowledge compiler"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -16,3 +16,6 @@ phicompile = "phicompile.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["phicompile*"]
+
+[tool.setuptools.package-data]
+phicompile = ["assets/*.html"]
