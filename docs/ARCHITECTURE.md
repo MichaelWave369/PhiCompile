@@ -53,3 +53,19 @@ The model-enabled path is intentionally separate from ingestion:
 **Not guaranteed:** correctness of model reasoning, full coverage of candidate pairs, a model-weights cryptographic digest, signed identities, thread-safe concurrency, and independent factual verification.
 
 Acceptance checks: no external endpoint; no request during `plan`; unknown IDs / malformed JSON / model mismatch rejected; no source or ledger mutations; model output never VERIFIED; CI runs with a fake transport, not a live model.
+
+## v0.3 ΦGraph local projection
+
+`graph` performs `verify` then replays the ledger, generating source nodes, claim nodes, `EVIDENCED_BY` edges, and deterministic `RELATED` / `POSSIBLE_CONTRADICTION` heuristic candidate edges. It writes reproducible `graph.json` and a self-contained `index.html` to the **ignored local vault**.
+
+**Identity & meaning**
+- Source node identity = full SHA-256 of preserved bytes; source origin is metadata about its origin, not a truth verdict.
+- Claim node identity = full content-and-line-derived claim digest; all unverified extractions remain `INFERRED`.
+- `EVIDENCED_BY` identifies a claim-to-source snapshot link, not proof of the claim's factual accuracy.
+- `POSSIBLE_CONTRADICTION` is a flag, **not** an adjudication.
+- When explicitly requested, model proposal edges originate only from valid content-hashed `PROPOSED` receipts with the **current** source ledger head. Any stale head is reported and not overlaid; altered hashes, missing claims, or source-line mismatch fail closed.
+
+**Privacy & delivery**
+No server, tracking, external font, cloud API, model execution, or third-party graph library. The entire graph data is embedded in a local HTML file with script-tag termination escaped. The viewer creates all untrusted source text elements through `textContent`, never `innerHTML`. No private graph is published automatically.
+
+**Limits:** This is a read-only snapshot projection, not incremental dependency invalidation, a knowledge truth adjudicator, or a transactional/signed history system. The current viewer renders 650 nodes maximum for responsiveness; `graph.json` includes all eligible nodes up to export limits. Graph generation has the same one-writer limitations as v0.1.

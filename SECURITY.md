@@ -25,3 +25,11 @@ Please do not put sensitive exploit details or private documents in public issue
 - Model outputs are untrusted and may contain incorrect or malicious rationale text. Never treat a suggestion as authority or as evidence that sources are correct.
 - Request/response hashes and ledger-head reference are *integrity references*, not signed proofs, and do not attest to which model weights generated output.
 - The output directory is local to the user-selected vault. Existing single-writer and crash-recovery limitations apply.
+
+## v0.3 ΦGraph browser isolation
+
+- A graph contains sensitive source filenames, text excerpts, SHA identifiers and potential model proposals. Keep `.phicompile/output/graph/` in the local ignored vault; never serve or publish it publicly without reviewing and sanitizing your data.
+- The self-contained HTML needs no server, external scripts, fetches, or tracking. The Content Security Policy blocks external connections and resources.
+- The graph JSON embedded in HTML escapes HTML delimiter characters; the browser populates dynamic content via DOM `textContent` rather than HTML parsing. The bundled viewer can be audited directly in the repository.
+- The graph viewer is a projection only; it does not write to the INGEST ledger or promote any candidate claim. Clicking archived sources uses relative local paths under the same vault, if the browser permits them.
+- Local HTML is not encrypted and a person with access to your files can open it. Do not treat CSP or a hash chain as a sandbox for hostile local software.
