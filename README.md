@@ -4,13 +4,27 @@
 
 ΦCompile is an original, local-first prototype for **evidence-governed knowledge compilation**. It keeps unchanged source snapshots, extracts conservative candidate claims, links related claims across sources, flags possible contradictions, and creates a human-readable wiki plus an auditable receipt.
 
-> **v0.4.0 adds governed human relationship review.** Users can record ACCEPT / REJECT decisions against an exact AI proposal receipt and pair, with an integrity-checkable decision history. Accepting a *connection* never verifies either underlying claim. Everything stays local and source evidence remains unchanged.
+> **v0.6.0 adds ΦRecall:** a deterministic, offline evidence-search contract with exact archived source citations. It never invents an answer or promotes candidate claims to VERIFIED.
 
 ## Public React Field Lab (v0.5, synthetic exhibit)
 
 The public [ΦCompile Field Lab](https://michaelwave369.github.io/PhiCompile/) is an interactive React/Vite visualization built from **fictional source records only**. This is not the private local engine: there is no vault access, backend connection, Ollama request, real research ingest, or cryptographic receipt generation. Demo review buttons only change temporary browser state, never real claim truth.
 
 The site lives in [site/](site/README.md). GitHub Actions builds and checks the synthetic fixtures on pull requests, then attempts to deploy site/dist on main. For a first-time Pages setup, configure **Settings → Pages → Build and deployment → Source → GitHub Actions**. Passing tests does not imply Pages is already publicly accessible.
+
+## ΦRecall: private source-backed retrieval (v0.6)
+
+Run read-only search from the command line after ingesting sources:
+
+    python -m phicompile --vault .phicompile recall "prototype ready" --limit 5
+    python -m phicompile --vault .phicompile recall "provenance" --limit 8
+    python -m phicompile --vault .phicompile recall "provenance" --include-reviewed-links --neighbors 5
+
+Results are machine-readable JSON. Every match carries the exact archived source line, source name, origin metadata, original line number, SHA-256 snapshot identity, candidate claim ID, and explicit INFERRED / not-verified status. Distinguish terms matched in the claim from terms found only in a source filename. The simple deterministic BM25-style relevance score is **not** a probability or truth confidence.
+
+Without matches, PhiRecall returns NO_MATCH rather than inventing an answer. Optional one-hop neighbor expansion follows only human-ACCEPTED connections on the *current* source ledger, after validating model proposal receipts and review history. Merely proposed, rejected and stale connections are excluded. Even reviewed links do not verify either claim.
+
+Recall never calls Ollama or external APIs and never writes a file. **Its JSON output may contain confidential source excerpts**, so do not publish or redirect it into a public artifact. The implementation is an English-oriented lexical search, not semantic/vector retrieval, model-generated answers, factual verification, retraction/supersession handling or a completed BrainC/Super Phi.Vessel integration. It is a future read-only integration contract.
 
 ## Quick start
 
@@ -143,6 +157,7 @@ Supported imports: UTF-8 `.md` and `.txt`, maximum 1 MiB and 500 non-heading lin
 - **v0.2:** optional local Ollama relationship proposal bridge with strict output validation, model receipt, unchanged ingestion ledger, and automated mock-transport tests. Human promotion workflow and independently tested semantic extraction are **not** implemented.
 - **v0.3:** offline local ΦGraph projection with source/claim nodes, line-traceable evidence edges, heuristic cross-source links, and opt-in SHA-checked current-head proposal overlays. **Not yet implemented:** retractions/supersession, incremental dependency invalidation, transaction recovery, retrieval-only benchmarking.
 - **v0.4:** explicit human accept/reject relationship decisions, append-only hash-linked local review receipts, current-head validation, history-preserving override, and distinct reviewed edge styles in ΦGraph.
+- **v0.6:** source-backed ΦRecall lexical retrieval, matched source-line excerpts, deterministic relevance, explicit no-match behavior and optional human-accepted one-hop link expansion. No model calls or source edits.
 - **Later (not implemented):** genuine factual claim verification, reviewer signatures/authentication, incremental invalidation, crash-safe transactions, optional read-only integrations with BrainC, Super Φ.Vessel, NBG, and Anti-M; a **separate synthetic-fixture-only** GitHub Pages demo.
 
 See [Architecture](docs/ARCHITECTURE.md) and [Security](SECURITY.md).

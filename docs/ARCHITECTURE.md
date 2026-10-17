@@ -83,3 +83,13 @@ Reviewing a suggested connection requires explicit CLI input naming the content-
 - Reviewer names are not authenticated or signed. Hash chaining is tamper-evidence against edits without chain re-computation, not defense against a compromised disk.
 
 Validation cases: review twice and preserve both events; tamper original source, model receipt, or review chain and fail closed; reject unknown pair IDs and stale proposal ledgers; ensure `claim.status` always remains INFERRED.
+
+## v0.6 PhiRecall extractive contract
+
+The local read-only recall command emits a schema_version=1 JSON object with an EXTRACTIVE_EVIDENCE_RECALL kind, original query, current ledger head, MATCHES/NO_MATCH, and ranked source-backed candidate excerpts. Each result includes claim ID and INFERRED status, exact original archived source line and number, source hash and origin metadata, and a BM25-style relevance score. Source filename matches are separated from claim-text matches.
+
+The retrieval implementation bounds query length to 256 characters, distinct terms to 16, returned matches to 25, and optional reviewed neighbors to 10. It scans at most 20,000 candidate claims in memory, verifies source snapshots and chain before searching, and reconstructs every matched claim ID and exact original source line. The ledger head is checked again before return.
+
+Optional human-reviewed link expansion uses the verified current-head graph projection, traverses only ACCEPTED_CONNECTION relations, and includes the human review receipt hash plus source-backed neighbor excerpt. No source or review metadata is written; no LLM call takes place. Ranking is lexical rather than semantic, scores are not calibrated confidence, and results are neither generated answers nor evidence of factual truth.
+
+Potential future integrations with BrainC or Super Phi.Vessel remain explicitly unimplemented.

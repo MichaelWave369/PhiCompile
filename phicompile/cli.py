@@ -10,6 +10,7 @@ from .core import IntegrityError, compile_wiki, ingest, init, verify, ORIGINS
 from .ollama import OllamaError, propose, select_pairs
 from .graph import GraphError, export_graph
 from .reviews import ReviewError, list_reviews, record_review
+from .recall import RecallError, recall
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,6 +42,14 @@ def main(argv: list[str] | None = None) -> int:
     review_parser.add_argument("--reviewer", required=True, help="Self-reported local reviewer name, not authenticated")
     review_parser.add_argument("--reason", required=True, help="Why this connection was accepted or rejected")
     commands.add_parser("reviews", help="Verify review ledger and list current human decisions")
+    recall_parser = commands.add_parser("recall", help="Read-only source-backed lexical search with evidence receipts")
+    recall_parser.add_argument("query", help="1–256 character search, not an LLM prompt")
+    recall_parser.add_argument("--limit", type=int, default=8,
+                               help="Maximum ranked source candidates (1–25)")
+    recall_parser.add_argument("--include-reviewed-links", action="store_true",
+                               help="Optionally add current-head human-accepted related evidence")
+    recall_parser.add_argument("--neighbors", type=int, default=5,
+                               help="Maximum one-hop reviewed neighbors (0–10)")
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -62,10 +71,14 @@ def main(argv: list[str] | None = None) -> int:
                                    reason=args.reason)
         elif args.command == "reviews":
             result = list_reviews(args.vault)
+        elif args.command == "recall":
+            result = recall(args.vault, args.query, limit=args.limit,
+                            include_reviewed_links=args.include_reviewed_links,
+                            neighbors=args.neighbors)
         else:
             result = propose(args.vault, args.model, limit=args.max_pairs,
                              timeout=args.timeout)
-    except (IntegrityError, OllamaError, GraphError, ReviewError, ValueError, OSError, UnicodeError) as exc:
+    except (IntegrityError, OllamaError, GraphError, ReviewError, RecallError, ValueError, OSError, UnicodeError) as exc:
         parser.exit(1, f"PhiCompile error: {exc}\n")
     print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
     return 0

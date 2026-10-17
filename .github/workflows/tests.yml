@@ -29,6 +29,10 @@ jobs:
           python -m phicompile --vault .phicompile compile
           python -m phicompile --vault .phicompile plan --max-pairs 8
           python -m phicompile --vault .phicompile reviews
+          python -m phicompile --vault .phicompile recall "prototype ready" --limit 2 > recall-smoke.json
+          python -c "import json; r=json.load(open('recall-smoke.json')); assert r['returned']==2 and all(x['claim_status']=='INFERRED' for x in r['results'])"
+          python -m phicompile --vault .phicompile recall "nonexistentword" --limit 2 > recall-empty.json
+          python -c "import json; r=json.load(open('recall-empty.json')); assert r['status']=='NO_MATCH'"
           python -m phicompile --vault .phicompile graph
           test -s .phicompile/output/graph/index.html
           test -s .phicompile/output/graph/graph.json
