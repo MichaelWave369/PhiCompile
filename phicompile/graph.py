@@ -1,4 +1,4 @@
-"""ΦGraph v0.3: deterministic read-only projection of governed evidence.
+"""ΦGraph v0.4: deterministic read-only projection of governed evidence.
 
 Graph exports are PRIVATE local artifacts. No export changes archived sources,
 claims, ledger records, or trust classifications. No network or model call.
@@ -118,9 +118,30 @@ def build_graph(vault: Path, *, include_proposals: bool = False) -> dict:
     proposal_counts = {"receipts_included": 0, "receipts_stale": 0}
     if include_proposals:
         proposed, proposal_counts = _proposal_edges(vault, state, summary["ledger_head"])
+        from .reviews import latest_reviews
+        reviewed = latest_reviews(vault, summary["ledger_head"])
+        for edge in proposed:
+            review = reviewed.get(edge["id"])
+            if review is not None:
+                if (review["receipt_sha256"] != edge["receipt_sha256"]
+                        or review["from"] != edge["from"]
+                        or review["to"] != edge["to"]
+                        or review["kind"] != edge["kind"]):
+                    raise GraphError("Review receipt disagrees with source-linked proposal")
+                edge["status"] = ("ACCEPTED_CONNECTION" if review["decision"] == "ACCEPT"
+                                  else "REJECTED_CONNECTION")
+                edge["basis"] = "HUMAN_REVIEWED_MODEL_SUGGESTION"
+                edge["review_hash"] = review["hash"]
+                edge["reviewer"] = review["reviewer"]
+                edge["review_reason"] = review["reason"]
+                edge["review_timestamp"] = review["timestamp"]
+        # A decision refers to one current-head proposal, never an orphan.
+        eligible = {edge["id"] for edge in proposed}
+        if any(key not in eligible for key in reviewed):
+            raise GraphError("A review refers to a missing current-head proposal edge")
         links.extend(proposed)
     if len(nodes) > MAX_EXPORTED_NODES or len(links) > MAX_EXPORTED_EDGES:
-        raise GraphError("Graph size exceeds v0.3 export limit; no output written")
+        raise GraphError("Graph size exceeds v0.4 export limit; no output written")
     return {
         "schema_version": 1,
         "title": "ΦGraph | Evidence-led knowledge network",
@@ -129,7 +150,9 @@ def build_graph(vault: Path, *, include_proposals: bool = False) -> dict:
         "counts": {
             "sources": summary["sources"], "claims": summary["claims"],
             "heuristic_relations": summary["relations"],
-            "model_proposals": len([e for e in links if e["status"] == "PROPOSED"]),
+            "model_proposals": len([e for e in links if e.get("receipt_sha256")]),
+            "accepted_connections": len([e for e in links if e["status"] == "ACCEPTED_CONNECTION"]),
+            "rejected_connections": len([e for e in links if e["status"] == "REJECTED_CONNECTION"]),
             **proposal_counts,
         },
         "nodes": nodes,

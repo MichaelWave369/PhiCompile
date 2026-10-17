@@ -9,6 +9,7 @@ from . import __version__
 from .core import IntegrityError, compile_wiki, ingest, init, verify, ORIGINS
 from .ollama import OllamaError, propose, select_pairs
 from .graph import GraphError, export_graph
+from .reviews import ReviewError, list_reviews, record_review
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -33,6 +34,13 @@ def main(argv: list[str] | None = None) -> int:
     graph_parser = commands.add_parser("graph", help="Export private offline ΦGraph viewer and JSON")
     graph_parser.add_argument("--include-proposals", action="store_true",
                               help="Include SHA-verified, current-head unverified model proposals")
+    review_parser = commands.add_parser("review", help="Record a HUMAN accept/reject decision on a proposed connection")
+    review_parser.add_argument("--receipt", required=True, help="Full proposal receipt SHA-256")
+    review_parser.add_argument("--pair-id", required=True, help="Pair ID from proposal receipt (e.g. P001)")
+    review_parser.add_argument("--decision", required=True, choices=("accept", "reject"))
+    review_parser.add_argument("--reviewer", required=True, help="Self-reported local reviewer name, not authenticated")
+    review_parser.add_argument("--reason", required=True, help="Why this connection was accepted or rejected")
+    commands.add_parser("reviews", help="Verify review ledger and list current human decisions")
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -48,10 +56,16 @@ def main(argv: list[str] | None = None) -> int:
             result = export_graph(args.vault, include_proposals=args.include_proposals)
         elif args.command == "plan":
             result = select_pairs(args.vault, limit=args.max_pairs)
+        elif args.command == "review":
+            result = record_review(args.vault, args.receipt, args.pair_id,
+                                   decision=args.decision, reviewer=args.reviewer,
+                                   reason=args.reason)
+        elif args.command == "reviews":
+            result = list_reviews(args.vault)
         else:
             result = propose(args.vault, args.model, limit=args.max_pairs,
                              timeout=args.timeout)
-    except (IntegrityError, OllamaError, GraphError, ValueError, OSError, UnicodeError) as exc:
+    except (IntegrityError, OllamaError, GraphError, ReviewError, ValueError, OSError, UnicodeError) as exc:
         parser.exit(1, f"PhiCompile error: {exc}\n")
     print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
     return 0

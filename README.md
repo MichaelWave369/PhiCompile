@@ -4,7 +4,7 @@
 
 ΦCompile is an original, local-first prototype for **evidence-governed knowledge compilation**. It keeps unchanged source snapshots, extracts conservative candidate claims, links related claims across sources, flags possible contradictions, and creates a human-readable wiki plus an auditable receipt.
 
-> **v0.3.0 adds ΦGraph:** a deterministic, private, offline visualization of source evidence, candidate claims, and cross-source connections, with optional unverified model-proposal overlays. The source ledger remains authoritative for evidence, not truth; no model result is promoted to VERIFIED.
+> **v0.4.0 adds governed human relationship review.** Users can record ACCEPT / REJECT decisions against an exact AI proposal receipt and pair, with an integrity-checkable decision history. Accepting a *connection* never verifies either underlying claim. Everything stays local and source evidence remains unchanged.
 
 ## Quick start
 
@@ -64,6 +64,30 @@ This opt-in view includes only locally stored proposal receipts whose content SH
 
 **Privacy:** Graph files contain excerpts of your original sources. They are generated under `.phicompile/`, which Git ignores. **Never upload a private graph to GitHub Pages or commit it to a public repository.** This first view displays up to 650 nodes for performance, while its JSON exports all nodes under a bounded v0.3 cap. No silent edits to the ledger, source snapshots, or claim statuses.
 
+## Governed human relationship review (v0.4)
+
+Replace `REPLACE_WITH_64_CHARACTER_SHA256` with the SHA-256 printed by `propose`. Review a *particular model-suggested relationship* only after running `propose` on the current source ledger. The `propose` command prints a `proposal_sha256`; inspect its private JSON file to find the `pair_id` (usually `P001`, etc.).
+
+```bash
+# Show the current review history and verify decision hash-chain integrity:
+python -m phicompile --vault .phicompile reviews
+
+# Human reviewer deliberately ACCEPTS a connection for future exploration:
+python -m phicompile --vault .phicompile review --receipt REPLACE_WITH_64_CHARACTER_SHA256 --pair-id P001 --decision accept --reviewer "Local reviewer" --reason "Both excerpts refer to the same feature under the same scope."
+
+# Or REJECT it for a different scope or misleading inference:
+python -m phicompile --vault .phicompile review --receipt REPLACE_WITH_64_CHARACTER_SHA256 --pair-id P001 --decision reject --reviewer "Local reviewer" --reason "The documents discuss different versions of the feature."
+
+# View connection decisions alongside unreviewed AI suggestions:
+python -m phicompile --vault .phicompile graph --include-proposals
+```
+
+Review results live in the ignored local `.phicompile/reviews/decisions.jsonl`. Each append-only event includes the full proposal receipt digest, stable pair ID / graph edge ID, source ledger head, user-supplied reviewer name, decision, written reason, and previous review hash. Newer reviews supersede earlier decisions **in the current view**, but the earlier events remain in history.
+
+**CRUCIAL:** ACCEPT means "this *relationship* is useful/appropriate for a local knowledge graph." It does **not** mean either claim is factually correct, scientifically verified, source-authenticated, or authorized for execution. `VERIFIED` claim promotion is **not implemented**. The reviewer string is a **self-reported label**, not a login or signature. SHA chaining detects modifications but cannot prevent a person with full disk control from rewriting history.
+
+When a new source is ingested, previous proposal receipts and decisions are still preserved, but the current graph excludes old-head suggestions and their reviews; generate a fresh proposal for the new ledger state if needed. This first review system is intentionally **single-writer**, without lock-based concurrency protection or transactional crash recovery.
+
 ## How it works
 
 ```text
@@ -112,7 +136,8 @@ Supported imports: UTF-8 `.md` and `.txt`, maximum 1 MiB and 500 non-heading lin
 - **v0.1:** content-addressed immutable snapshots; conservative candidate claims; cross-source candidate links; hash-chain receipts; generated wiki; automated tests.
 - **v0.2:** optional local Ollama relationship proposal bridge with strict output validation, model receipt, unchanged ingestion ledger, and automated mock-transport tests. Human promotion workflow and independently tested semantic extraction are **not** implemented.
 - **v0.3:** offline local ΦGraph projection with source/claim nodes, line-traceable evidence edges, heuristic cross-source links, and opt-in SHA-checked current-head proposal overlays. **Not yet implemented:** retractions/supersession, incremental dependency invalidation, transaction recovery, retrieval-only benchmarking.
-- **Later (not implemented):** optional read-only integrations with BrainC, Super Φ.Vessel, NBG, and Anti-M; a **separate synthetic-fixture-only** GitHub Pages demo.
+- **v0.4:** explicit human accept/reject relationship decisions, append-only hash-linked local review receipts, current-head validation, history-preserving override, and distinct reviewed edge styles in ΦGraph.
+- **Later (not implemented):** genuine factual claim verification, reviewer signatures/authentication, incremental invalidation, crash-safe transactions, optional read-only integrations with BrainC, Super Φ.Vessel, NBG, and Anti-M; a **separate synthetic-fixture-only** GitHub Pages demo.
 
 See [Architecture](docs/ARCHITECTURE.md) and [Security](SECURITY.md).
 

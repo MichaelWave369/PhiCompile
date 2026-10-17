@@ -69,3 +69,17 @@ Acceptance checks: no external endpoint; no request during `plan`; unknown IDs /
 No server, tracking, external font, cloud API, model execution, or third-party graph library. The entire graph data is embedded in a local HTML file with script-tag termination escaped. The viewer creates all untrusted source text elements through `textContent`, never `innerHTML`. No private graph is published automatically.
 
 **Limits:** This is a read-only snapshot projection, not incremental dependency invalidation, a knowledge truth adjudicator, or a transactional/signed history system. The current viewer renders 650 nodes maximum for responsiveness; `graph.json` includes all eligible nodes up to export limits. Graph generation has the same one-writer limitations as v0.1.
+
+## v0.4 human review, separate from factual verification
+
+Reviewing a suggested connection requires explicit CLI input naming the content-hashed proposal receipt, its unique pair ID, a human-selected ACCEPT or REJECT decision, self-reported reviewer, and an explanatory reason.
+
+- Reject missing, stale, modified, or non-matching model proposal receipts. Never accept a historical receipt from a superseded source ledger head into the current graph.
+- Before append, verify the original source ledger, archived content digests, current proposal identities, and the separate review decision hash chain.
+- Append a review event with SHA-256 hash over canonical event JSON, linked to the prior review event digest, including the source ledger head and stable graph edge ID.
+- Never mutate the original source ledger, source snapshots, model proposal receipts, or claim status when reviewing a relationship.
+- Repeated review of the same edge is permitted; the **latest** human decision is the effective current view, but every earlier review remains in the review ledger.
+- ΦGraph still labels model suggestions as model-derived and shows a distinct `ACCEPTED_CONNECTION` or `REJECTED_CONNECTION` status, with an explanatory reviewer note. **Neither means VERIFIED.**
+- Reviewer names are not authenticated or signed. Hash chaining is tamper-evidence against edits without chain re-computation, not defense against a compromised disk.
+
+Validation cases: review twice and preserve both events; tamper original source, model receipt, or review chain and fail closed; reject unknown pair IDs and stale proposal ledgers; ensure `claim.status` always remains INFERRED.

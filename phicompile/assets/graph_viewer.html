@@ -22,6 +22,8 @@ svg:active{cursor:grabbing}
 .edge{stroke:#53738c;stroke-width:1.5;opacity:.33;vector-effect:non-scaling-stroke}
 .edge.critical{stroke:#efaa64;stroke-width:3;opacity:.85}
 .edge.proposed{stroke:#e1bc67;stroke-dasharray:7 5;stroke-width:2.5;opacity:.8}
+.edge.reviewed-accepted{stroke:#63e0b9;stroke-width:3.3;stroke-dasharray:none;opacity:.9}
+.edge.reviewed-rejected{stroke:#db7181;stroke-width:2.5;stroke-dasharray:4 5;opacity:.68}
 .edge.derivation{stroke:#3e6a81;opacity:.36}
 .node{cursor:pointer}
 .node circle{stroke:#e5f5fc;stroke-width:1.3;fill:#213f54;filter:drop-shadow(0 0 7px #3aa6d133)}
@@ -80,7 +82,7 @@ a{color:#9ee9da}
     <label class="filter"><input type="checkbox" id="show-proposed" checked>Proposals</label>
     <button id="reset" type="button">Reset view</button>
   </div>
-  <div class="legend"><span><i class="dot"></i>Source</span><span><i class="dot claim"></i>Candidate claim</span><span><i class="dot conflict"></i>Possible contradiction</span><span><i class="dot proposal"></i>AI proposal</span></div>
+  <div class="legend"><span><i class="dot"></i>Source</span><span><i class="dot claim"></i>Candidate claim</span><span><i class="dot conflict"></i>Possible contradiction</span><span><i class="dot proposal"></i>AI proposal / human review</span></div>
 </section>
 <aside>
   <h2>Knowledge overview</h2>
@@ -149,7 +151,7 @@ function make(tag,attrs,parent){
 }
 function kindVisible(e){
   if(e.kind==="EVIDENCED_BY")return $("show-evidence").checked;
-  if(e.status==="PROPOSED")return $("show-proposed").checked;
+  if(e.receipt_sha256)return $("show-proposed").checked;
   if(e.kind==="POSSIBLE_CONTRADICTION")return $("show-conflict").checked;
   return $("show-related").checked;
 }
@@ -158,7 +160,7 @@ for(const e of links){
   if(!visible.has(e.from)||!visible.has(e.to))continue;
   const a=positions.get(e.from),b=positions.get(e.to);
   if(!a||!b)continue;
-  const style=e.status==="PROPOSED"?"edge proposed":e.kind==="POSSIBLE_CONTRADICTION"?"edge critical":e.kind==="EVIDENCED_BY"?"edge derivation":"edge";
+  const style=e.receipt_sha256?("edge proposed"+(e.status==="ACCEPTED_CONNECTION"?" reviewed-accepted":e.status==="REJECTED_CONNECTION"?" reviewed-rejected":"")):e.kind==="POSSIBLE_CONTRADICTION"?"edge critical":e.kind==="EVIDENCED_BY"?"edge derivation":"edge";
   const line=make("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:style},$("edge-layer"));
   lines.set(e.id,{edge:e,el:line});
 }
@@ -220,6 +222,7 @@ function select(id){
    btn.addEventListener("click",()=>{select(other);circles.get(other)?.focus();});
    li.appendChild(btn);
    if(edge.rationale)appendText(li,"div","AI rationale (unverified): "+edge.rationale,"description");
+   if(edge.review_hash)appendText(li,"div","Human relationship review: "+edge.status+" by "+edge.reviewer+" · "+edge.review_reason+" (not a verification of either claim).","description");
  }
  if(relevant.length>100)appendText(panel,"p","Only 100 connections listed here; see graph.json for all.","description");
  refresh();
