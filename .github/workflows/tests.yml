@@ -34,3 +34,26 @@ jobs:
           test -s .phicompile/output/graph/graph.json
           grep -q EVIDENCED_BY .phicompile/output/graph/graph.json
           grep -q "Possible contradictions: 1" .phicompile/output/LATEST.md
+
+  public-lab:
+    name: Verify React public lab
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        working-directory: site
+        run: npm install --no-audit --no-fund
+      - name: Test synthetic evidence fixtures
+        working-directory: site
+        run: npm test
+      - name: Build Pages assets
+        working-directory: site
+        run: npm run build
+      - name: Verify production artifacts
+        run: |
+          test -s site/dist/index.html
+          test -f site/dist/phi.svg
+          grep -q '/PhiCompile/assets/' site/dist/index.html
