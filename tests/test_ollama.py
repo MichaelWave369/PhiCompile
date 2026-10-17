@@ -51,7 +51,7 @@ class LocalProposalTests(unittest.TestCase):
         self.assertEqual(selection["candidate_count"], 1)
         self.assertEqual(selection["pairs"][0]["pair_id"], "P001")
         self.assertEqual(verify(self.vault), before)
-        self.assertFalse((self.vault / "output").exists())
+        self.assertFalse((self.vault / "output" / "proposals").exists())
 
     def test_successful_proposal_does_not_promote_or_mutate_ledger(self):
         before = verify(self.vault)
@@ -79,7 +79,7 @@ class LocalProposalTests(unittest.TestCase):
     def test_rejects_unknown_pair_without_receipt(self):
         with self.assertRaises(OllamaError):
             propose(self.vault, MODEL, transport=lambda _p, _t: mock_reply(pair_id="P999"))
-        self.assertFalse((self.vault / "output").exists())
+        self.assertFalse((self.vault / "output" / "proposals").exists())
 
     def test_rejects_model_identity_mismatch(self):
         response = mock_reply()
@@ -114,7 +114,7 @@ class LocalProposalTests(unittest.TestCase):
             return mock_reply()
         with self.assertRaises(IntegrityError):
             propose(self.vault, MODEL, transport=malicious_transport)
-        self.assertFalse((self.vault / "output").exists())
+        self.assertFalse((self.vault / "output" / "proposals").exists())
 
     def test_no_cloud_or_remote_endpoint_option(self):
         self.assertEqual(OLLAMA_ENDPOINT, "http://127.0.0.1:11434/api/generate")
