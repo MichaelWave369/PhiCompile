@@ -33,3 +33,12 @@ Please do not put sensitive exploit details or private documents in public issue
 - The graph JSON embedded in HTML escapes HTML delimiter characters; the browser populates dynamic content via DOM `textContent` rather than HTML parsing. The bundled viewer can be audited directly in the repository.
 - The graph viewer is a projection only; it does not write to the INGEST ledger or promote any candidate claim. Clicking archived sources uses relative local paths under the same vault, if the browser permits them.
 - Local HTML is not encrypted and a person with access to your files can open it. Do not treat CSP or a hash chain as a sandbox for hostile local software.
+
+## v0.4 human review boundaries
+
+- `review --decision accept` only approves a **relationship for local exploration**. It never asserts the truth of underlying claims or upgrades them to VERIFIED.
+- Reviewer identity is user-supplied and not authenticated. Treat `--reviewer` as a label, **not proof of who reviewed**.
+- `review` checks source snapshots, current ledger head, proposal receipt integrity, pair references, and prior decision chain **before** appending another decision event.
+- Review events are hash-linked and append-only in intended operation, but not cryptographically signed or tamper-proof. An attacker with filesystem access can rewrite the history and recalculate hashes.
+- All review notes are untrusted text. Graph output embeds them with HTML delimiter escaping and displays them using DOM textContent, never as executable commands.
+- The prototype remains single-writer; do not run concurrent review or ingestion processes. Interrupted writes may require manual recovery from an offline backup.
