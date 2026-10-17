@@ -42,3 +42,11 @@ Please do not put sensitive exploit details or private documents in public issue
 - Review events are hash-linked and append-only in intended operation, but not cryptographically signed or tamper-proof. An attacker with filesystem access can rewrite the history and recalculate hashes.
 - All review notes are untrusted text. Graph output embeds them with HTML delimiter escaping and displays them using DOM textContent, never as executable commands.
 - The prototype remains single-writer; do not run concurrent review or ingestion processes. Interrupted writes may require manual recovery from an offline backup.
+
+## v0.6 retrieval safety boundary
+
+PhiRecall never invokes Ollama, cloud APIs, or executable tools. It checks source snapshots, ledger event integrity, individual candidate IDs and exact archived source lines before returning evidence. It prints JSON to stdout and writes no files.
+
+A source hit can reproduce private filenames and text. Only run this locally, and never publish private recall results via Pages or another shared surface. Recall scores rank lexical matches; they do not prove factual accuracy. A human-accepted relationship does not verify a claim.
+
+Optional connection expansion validates model proposal receipts and human review history with the current evidence ledger head. Proposed, rejected or stale links are not traversed. It remains single-writer, unsigned, non-transactional prototype software.
