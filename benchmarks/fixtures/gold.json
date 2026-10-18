@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "dataset": "synthetic_crossrepo_v1",
+  "cases": [
+    {
+      "id": "memory_hashes",
+      "query": "source hashes exact line references",
+      "relevant": [
+        {
+          "source_sha256": "28c90c5f51db6a20e985ffb769936d6c367a9fd044575f5042c3f7acb2eab2a3",
+          "source_line": 2
+        }
+      ]
+    },
+    {
+      "id": "memory_retrieval",
+      "query": "lexical matches without generating answers",
+      "relevant": [
+        {
+          "source_sha256": "28c90c5f51db6a20e985ffb769936d6c367a9fd044575f5042c3f7acb2eab2a3",
+          "source_line": 3
+        }
+      ]
+    },
+    {
+      "id": "review_trace",
+      "query": "reviewer decisions hash chaining",
+      "relevant": [
+        {
+          "source_sha256": "f649bcf753100976c5821d358cb1de17a4fd037b9153be1314807323a739e5d5",
+          "source_line": 3
+        }
+      ]
+    },
+    {
+      "id": "review_governance",
+      "query": "accept connection without verifying claims",
+      "relevant": [
+        {
+          "source_sha256": "f649bcf753100976c5821d358cb1de17a4fd037b9153be1314807323a739e5d5",
+          "source_line": 2
+        }
+      ]
+    },
+    {
+      "id": "ollama_proposals",
+      "query": "installed Ollama model inference proposals",
+      "relevant": [
+        {
+          "source_sha256": "d7148aa027281bb0369b8b9d21f29d122263ba333a3d4b2e0452a7b3e734a0ce",
+          "source_line": 2
+        }
+      ]
+    },
+    {
+      "id": "model_permissions",
+      "query": "model tool execution authorization",
+      "relevant": [
+        {
+          "source_sha256": "d7148aa027281bb0369b8b9d21f29d122263ba333a3d4b2e0452a7b3e734a0ce",
+          "source_line": 3
+        }
+      ]
+    },
+    {
+      "id": "geometry_manifest",
+      "query": "mesh materials geometry provenance",
+      "relevant": [
+        {
+          "source_sha256": "d02daf7a36938b4928ea9c631f662d955c08ce15414e4fab4d2045c930f57f68",
+          "source_line": 3
+        }
+      ]
+    },
+    {
+      "id": "routing_scanner",
+      "query": "repository scanner inventories code",
+      "relevant": [
+        {
+          "source_sha256": "efdebd7ec4bf82c03c8d5c3530792309b69ae4912d9aa59ecc4d30b70332acdf",
+          "source_line": 3
+        }
+      ]
+    },
+    {
+      "id": "negative_neutrinos",
+      "query": "neutrino orbit emerald",
+      "relevant": []
+    },
+    {
+      "id": "negative_chocolate",
+      "query": "galactic chocolate thunder",
+      "relevant": []
+    }
+  ]
+}

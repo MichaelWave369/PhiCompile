@@ -9,3 +9,7 @@ build/
 site/node_modules/
 site/dist/
 site/.vite/
+.benchmark-fixture/
+.private-eval/
+benchmark-smoke.json
+benchmark-catalog.json

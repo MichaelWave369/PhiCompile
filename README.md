@@ -4,7 +4,7 @@
 
 ΦCompile is an original, local-first prototype for **evidence-governed knowledge compilation**. It keeps unchanged source snapshots, extracts conservative candidate claims, links related claims across sources, flags possible contradictions, and creates a human-readable wiki plus an auditable receipt.
 
-> **v0.6.0 adds ΦRecall:** a deterministic, offline evidence-search contract with exact archived source citations. It never invents an answer or promotes candidate claims to VERIFIED.
+> **v0.7.0 adds the ΦRecall benchmark lab:** independently labeled source-line targets, measured retrieval/no-match accuracy, and a simple lexical baseline. All runs remain local and read-only.
 
 ## Public React Field Lab (v0.5, synthetic exhibit)
 
@@ -25,6 +25,25 @@ Results are machine-readable JSON. Every match carries the exact archived source
 Without matches, PhiRecall returns NO_MATCH rather than inventing an answer. Optional one-hop neighbor expansion follows only human-ACCEPTED connections on the *current* source ledger, after validating model proposal receipts and review history. Merely proposed, rejected and stale connections are excluded. Even reviewed links do not verify either claim.
 
 Recall never calls Ollama or external APIs and never writes a file. **Its JSON output may contain confidential source excerpts**, so do not publish or redirect it into a public artifact. The implementation is an English-oriented lexical search, not semantic/vector retrieval, model-generated answers, factual verification, retraction/supersession handling or a completed BrainC/Super Phi.Vessel integration. It is a future read-only integration contract.
+
+## ΦRecall benchmark lab (v0.7)
+
+Before connecting ΦCompile to BrainC or Super Φ.Vessel, measure whether ΦRecall finds the expected source lines, not just whether it returns plausible text.
+
+The new `bench` command scores ΦRecall against a separate human-labeled JSON file of **source SHA-256 + line number** targets. It compares the actual lexical ranker to a simple unique-token-overlap baseline and reports hit-rate@k, macro recall@k, macro precision@k, mean reciprocal rank@k, and no-match accuracy. Unrecognized or stale gold references fail explicitly.
+
+Start with the safe synthetic fixtures (see [benchmark protocol](benchmarks/README.md)):
+
+```bash
+python -m phicompile --vault .phicompile ingest benchmarks/fixtures/memory.md --origin SIMULATED
+python -m phicompile --vault .phicompile ingest benchmarks/fixtures/review.md --origin SIMULATED
+python -m phicompile --vault .phicompile ingest benchmarks/fixtures/models.md --origin SIMULATED
+python -m phicompile --vault .phicompile ingest benchmarks/fixtures/geometry.md --origin SIMULATED
+python -m phicompile --vault .phicompile ingest benchmarks/fixtures/routing.md --origin SIMULATED
+python -m phicompile --vault .phicompile bench --cases benchmarks/fixtures/gold.json --k 3
+```
+
+For **opt-in local project testing**, use a separate private vault and ingest copies of selected Markdown/text files without moving or modifying originals. Then run `bench-catalog --limit 100` locally to inspect source hashes, line numbers and private excerpts and manually label a private gold file. The catalog contains **private text** and should never be committed or uploaded. The benchmark result suppresses raw queries and original source excerpts by default. Neither command calls Ollama or other network APIs, writes files, or verifies factual assertions. Synthetic CI success does **not** establish real-project accuracy.
 
 ## Quick start
 
@@ -158,6 +177,7 @@ Supported imports: UTF-8 `.md` and `.txt`, maximum 1 MiB and 500 non-heading lin
 - **v0.3:** offline local ΦGraph projection with source/claim nodes, line-traceable evidence edges, heuristic cross-source links, and opt-in SHA-checked current-head proposal overlays. **Not yet implemented:** retractions/supersession, incremental dependency invalidation, transaction recovery, retrieval-only benchmarking.
 - **v0.4:** explicit human accept/reject relationship decisions, append-only hash-linked local review receipts, current-head validation, history-preserving override, and distinct reviewed edge styles in ΦGraph.
 - **v0.6:** source-backed ΦRecall lexical retrieval, matched source-line excerpts, deterministic relevance, explicit no-match behavior and optional human-accepted one-hop link expansion. No model calls or source edits.
+- **v0.7:** local retrieval benchmark with source-hash + line gold references, 10 synthetic test cases including no-match controls, reproducible rank/precision/recall metrics, simple independent lexical baseline and private-label catalog.
 - **Later (not implemented):** genuine factual claim verification, reviewer signatures/authentication, incremental invalidation, crash-safe transactions, optional read-only integrations with BrainC, Super Φ.Vessel, NBG, and Anti-M; a **separate synthetic-fixture-only** GitHub Pages demo.
 
 See [Architecture](docs/ARCHITECTURE.md) and [Security](SECURITY.md).

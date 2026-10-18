@@ -29,6 +29,15 @@ jobs:
           python -m phicompile --vault .phicompile compile
           python -m phicompile --vault .phicompile plan --max-pairs 8
           python -m phicompile --vault .phicompile reviews
+          python -m phicompile --vault .phicompile ingest benchmarks/fixtures/memory.md --origin SIMULATED
+          python -m phicompile --vault .phicompile ingest benchmarks/fixtures/review.md --origin SIMULATED
+          python -m phicompile --vault .phicompile ingest benchmarks/fixtures/models.md --origin SIMULATED
+          python -m phicompile --vault .phicompile ingest benchmarks/fixtures/geometry.md --origin SIMULATED
+          python -m phicompile --vault .phicompile ingest benchmarks/fixtures/routing.md --origin SIMULATED
+          python -m phicompile --vault .phicompile bench --cases benchmarks/fixtures/gold.json --k 3 > benchmark-smoke.json
+          python -c "import json; r=json.load(open('benchmark-smoke.json')); assert r['case_count']==10 and r['phirecall']['positive_cases']==8 and r['phirecall']['negative_cases']==2 and r['phirecall']['no_match_accuracy']==1.0"
+          python -m phicompile --vault .phicompile bench-catalog --limit 2 > benchmark-catalog.json
+          python -c "import json; r=json.load(open('benchmark-catalog.json')); assert r['returned']==2 and r['entries'][0]['claim_status']=='INFERRED'"
           python -m phicompile --vault .phicompile recall "prototype ready" --limit 2 > recall-smoke.json
           python -c "import json; r=json.load(open('recall-smoke.json')); assert r['returned']==2 and all(x['claim_status']=='INFERRED' for x in r['results'])"
           python -m phicompile --vault .phicompile recall "nonexistentword" --limit 2 > recall-empty.json

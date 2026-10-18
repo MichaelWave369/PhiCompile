@@ -11,6 +11,7 @@ from .ollama import OllamaError, propose, select_pairs
 from .graph import GraphError, export_graph
 from .reviews import ReviewError, list_reviews, record_review
 from .recall import RecallError, recall
+from .bench import BenchmarkError, benchmark, catalog
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -50,6 +51,11 @@ def main(argv: list[str] | None = None) -> int:
                                help="Optionally add current-head human-accepted related evidence")
     recall_parser.add_argument("--neighbors", type=int, default=5,
                                help="Maximum one-hop reviewed neighbors (0–10)")
+    bench_parser = commands.add_parser("bench", help="Evaluate ΦRecall against locally curated exact source-line labels")
+    bench_parser.add_argument("--cases", type=Path, required=True, help="Local JSON gold dataset; never uploaded")
+    bench_parser.add_argument("--k", type=int, default=5, help="Maximum ranked hits per question (1–25)")
+    catalog_parser = commands.add_parser("bench-catalog", help="Print private source references for manual gold labeling")
+    catalog_parser.add_argument("--limit", type=int, default=50, help="Maximum catalog entries (1–200)")
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -75,10 +81,14 @@ def main(argv: list[str] | None = None) -> int:
             result = recall(args.vault, args.query, limit=args.limit,
                             include_reviewed_links=args.include_reviewed_links,
                             neighbors=args.neighbors)
+        elif args.command == "bench":
+            result = benchmark(args.vault, args.cases, k=args.k)
+        elif args.command == "bench-catalog":
+            result = catalog(args.vault, limit=args.limit)
         else:
             result = propose(args.vault, args.model, limit=args.max_pairs,
                              timeout=args.timeout)
-    except (IntegrityError, OllamaError, GraphError, ReviewError, RecallError, ValueError, OSError, UnicodeError) as exc:
+    except (IntegrityError, OllamaError, GraphError, ReviewError, RecallError, BenchmarkError, ValueError, OSError, UnicodeError) as exc:
         parser.exit(1, f"PhiCompile error: {exc}\n")
     print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
     return 0
