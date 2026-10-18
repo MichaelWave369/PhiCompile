@@ -50,3 +50,11 @@ PhiRecall never invokes Ollama, cloud APIs, or executable tools. It checks sourc
 A source hit can reproduce private filenames and text. Only run this locally, and never publish private recall results via Pages or another shared surface. Recall scores rank lexical matches; they do not prove factual accuracy. A human-accepted relationship does not verify a claim.
 
 Optional connection expansion validates model proposal receipts and human review history with the current evidence ledger head. Proposed, rejected or stale links are not traversed. It remains single-writer, unsigned, non-transactional prototype software.
+
+## v0.7 private benchmark boundaries
+
+- `bench` and `bench-catalog` never use models, network calls, or write to source evidence, review history or generated outputs. Both print JSON to standard output.
+- Catalog output **does contain private original excerpts and filenames**. Never post it to public repositories, logs, or GitHub Pages.
+- Benchmark summaries omit source excerpts and raw query strings. Avoid naming case IDs after secrets or sensitive documents.
+- Gold references must identify currently ingested exact source hash/claim line pairs. Broken or stale targets fail rather than disappearing from the score.
+- Retrieval performance is not a truth test. Synthetic-fixture metrics must not be described as accuracy on actual project archives.

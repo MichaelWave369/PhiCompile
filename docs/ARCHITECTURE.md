@@ -93,3 +93,11 @@ The retrieval implementation bounds query length to 256 characters, distinct ter
 Optional human-reviewed link expansion uses the verified current-head graph projection, traverses only ACCEPTED_CONNECTION relations, and includes the human review receipt hash plus source-backed neighbor excerpt. No source or review metadata is written; no LLM call takes place. Ranking is lexical rather than semantic, scores are not calibrated confidence, and results are neither generated answers nor evidence of factual truth.
 
 Potential future integrations with BrainC or Super Phi.Vessel remain explicitly unimplemented.
+
+## v0.7 retrieval quality measurement
+
+`bench --cases PATH --k N` evaluates an independent JSON gold set of 1–200 query cases, each with exact source digest and line number labels (or an empty relevant set for negative/no-match controls). Each target must reference an actual extracted candidate in the current vault. The evaluator uses the existing ΦRecall scoring path, plus an independent deterministic unique-query-term/claim-term-overlap baseline.
+
+The report presents dataset identifier, source ledger head, non-sensitive case IDs and ranks, and the same metrics for both systems: positive hit-rate, macro recall, macro precision, MRR and no-match accuracy. Empty positive or negative categories produce null metric values. No query contents or source excerpts are included in the summary. The tool is read-only. `bench-catalog` exposes source-backed private snippets for deliberate manual gold labeling, with an explicit privacy warning.
+
+This does not authenticate reviewers, verify claim truth, benchmark semantic retrieval, generalize synthetic evaluation to real project documents, or integrate other repositories.
