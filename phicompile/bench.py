@@ -60,7 +60,10 @@ def _load_cases(path: Path, state: dict, k: int) -> tuple[str, list[dict]]:
             raise BenchmarkError("Case query must be a string")
         # A real recall call validates query length and token policy before any evaluation.
         from .recall import _validate
-        _validate(query, k, 0)
+        try:
+            _validate(query, k, 0)
+        except RecallError as exc:
+            raise BenchmarkError("Invalid benchmark query; see recall query limits") from exc
         if not isinstance(expected, list) or len(expected) > 25:
             raise BenchmarkError("Relevant refs must be an array of at most 25 source lines")
         references = set()
